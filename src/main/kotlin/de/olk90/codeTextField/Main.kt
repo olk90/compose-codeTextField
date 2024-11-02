@@ -1,26 +1,22 @@
-import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.material.Button
+package de.olk90.codeTextField
+
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import de.olk90.codeTextField.view.CodeTextField
 
 @Composable
-@Preview
 fun App() {
-    var text by remember { mutableStateOf("Hello, World!") }
+    val text = remember { mutableStateOf(TextFieldValue("Hello, World!")) }
 
     MaterialTheme {
-        Button(onClick = {
-            text = "Hello, Desktop!"
-        }) {
-            Text(text)
-        }
+        CodeTextField(modifier = Modifier.fillMaxSize(), content = text)
     }
 }
 
