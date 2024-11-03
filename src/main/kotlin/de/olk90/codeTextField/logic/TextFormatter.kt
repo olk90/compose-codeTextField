@@ -6,6 +6,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import kotlin.text.isWhitespace
 
 fun formatText(textState: MutableState<TextFieldValue>, newValue: TextFieldValue) {
+    if (newValue.text.isEmpty()) {
+        textState.value = newValue
+        return
+    }
     if (insertLeadingTabs(textState, newValue)) return
     if (appendClosingBrackets(textState, newValue)) return
     textState.value = newValue
@@ -19,15 +23,17 @@ private fun insertLeadingTabs(textState: MutableState<TextFieldValue>, newValue:
     val lastSymbol = currentText[cursorIndex]
     if (currentText.length > textState.value.text.length && lastSymbol == '\n') {
         val lines = currentText.split("\n")
-        val lastLine = lines.last().takeWhile { it == '\t' || it.isWhitespace() }
+
+        val currentLineIndex = currentText.countNewlinesBefore(cursorIndex)
+        val lastLineIndex = maxOf(0, currentLineIndex - 1)
+
+        val lastLine = lines[lastLineIndex]
         val tabs = countLeadingTabs(lastLine)
 
-        val newLineIndentation = lastLine + "\t".repeat(tabs) // Add tabs based on last line
+        val newLineIndentation = "\t".repeat(tabs) // Add tabs based on last line
+        val updatedText = currentText.insertStringAt(newLineIndentation, cursorPosition)
 
-        textState.value = TextFieldValue(
-            currentText + newLineIndentation,
-            selection = TextRange(currentText.length + newLineIndentation.length)
-        )
+        textState.value = TextFieldValue(updatedText, selection = TextRange(cursorPosition + tabs))
         return true
     } else {
         return false
