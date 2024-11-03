@@ -42,6 +42,7 @@ private fun countLeadingTabs(input: String): Int {
 }
 
 private fun appendClosingBrackets(textState: MutableState<TextFieldValue>, newValue: TextFieldValue) {
+    val cursorPosition = newValue.selection.start
     val bracketsMap: Map<Char, Char> = mapOf(
         '(' to ')',
         '{' to '}',
@@ -53,12 +54,11 @@ private fun appendClosingBrackets(textState: MutableState<TextFieldValue>, newVa
 
     // Check if the last character entered is an opening bracket
     val openingBrackets = bracketsMap.keys
-    val lastSymbol = newValue.text.last()
+    val lastSymbol = newValue.text[cursorPosition - 1]
     if (newValue.text.length > textState.value.text.length && openingBrackets.contains(lastSymbol)) {
         // Insert a closing bracket at the current cursor position
-        val cursorPosition = newValue.selection.start
-        val closingBracket = bracketsMap[lastSymbol]
-        val updatedText = newValue.text + closingBracket
+        val closingBracket = bracketsMap[lastSymbol]!!
+        val updatedText = newValue.text.insertCharAt(closingBracket, cursorPosition)
 
         // Set cursor position to be right after the opening bracket
         textState.value = TextFieldValue(updatedText, selection = TextRange(cursorPosition))
@@ -66,4 +66,10 @@ private fun appendClosingBrackets(textState: MutableState<TextFieldValue>, newVa
         // Update normally if no opening bracket was added
         textState.value = newValue
     }
+}
+
+fun String.insertCharAt(char: Char, index: Int): String {
+    val sb = StringBuilder(this)
+    sb.insert(index, char)
+    return sb.toString()
 }
