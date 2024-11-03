@@ -6,28 +6,33 @@ import androidx.compose.ui.text.input.TextFieldValue
 import kotlin.text.isWhitespace
 
 fun formatText(textState: MutableState<TextFieldValue>, newValue: TextFieldValue) {
+    if (insertLeadingTabs(textState, newValue)) return
+    if (appendClosingBrackets(textState, newValue)) return
+    textState.value = newValue
+}
+
+private fun insertLeadingTabs(textState: MutableState<TextFieldValue>, newValue: TextFieldValue): Boolean {
     val currentText = newValue.text
     val cursorPosition = newValue.selection.start
 
-    appendClosingBrackets(textState, newValue)
+    val cursorIndex = maxOf(0, cursorPosition - 1)
+    val lastSymbol = currentText[cursorIndex]
+    if (currentText.length > textState.value.text.length && lastSymbol == '\n') {
+        val lines = currentText.split("\n")
+        val lastLine = lines.last().takeWhile { it == '\t' || it.isWhitespace() }
+        val tabs = countLeadingTabs(lastLine)
 
-//    if (currentText.endsWith("\n")) {
-//        val lines = currentText.split("\n")
-//        val lastLine = lines.last().takeWhile { it == '\t' || it.isWhitespace() }
-//        val tabs = countLeadingTabs(lastLine)
-//
-//        val newLineIndentation = lastLine + "\t".repeat(tabs) // Add tabs based on last line
-//
-//        textState.value = TextFieldValue(
-//            currentText + newLineIndentation,
-//            selection = TextRange(currentText.length + newLineIndentation.length)
-//        )
-//    } else {
-//        // If not a newline, just update text without changing cursor position
-//        textState.value = TextFieldValue(currentText, selection = TextRange(cursorPosition))
-//    }
+        val newLineIndentation = lastLine + "\t".repeat(tabs) // Add tabs based on last line
+
+        textState.value = TextFieldValue(
+            currentText + newLineIndentation,
+            selection = TextRange(currentText.length + newLineIndentation.length)
+        )
+        return true
+    } else {
+        return false
+    }
 }
-
 
 private fun countLeadingTabs(input: String): Int {
     var count = 0
@@ -41,8 +46,10 @@ private fun countLeadingTabs(input: String): Int {
     return count
 }
 
-private fun appendClosingBrackets(textState: MutableState<TextFieldValue>, newValue: TextFieldValue) {
+private fun appendClosingBrackets(textState: MutableState<TextFieldValue>, newValue: TextFieldValue): Boolean {
     val cursorPosition = newValue.selection.start
+    val currentText = newValue.text
+
     val bracketsMap: Map<Char, Char> = mapOf(
         '(' to ')',
         '{' to '}',
@@ -54,22 +61,17 @@ private fun appendClosingBrackets(textState: MutableState<TextFieldValue>, newVa
 
     // Check if the last character entered is an opening bracket
     val openingBrackets = bracketsMap.keys
-    val lastSymbol = newValue.text[cursorPosition - 1]
-    if (newValue.text.length > textState.value.text.length && openingBrackets.contains(lastSymbol)) {
+    val cursorIndex = maxOf(0, cursorPosition - 1)
+    val lastSymbol = currentText[cursorIndex]
+    if (currentText.length > textState.value.text.length && openingBrackets.contains(lastSymbol)) {
         // Insert a closing bracket at the current cursor position
         val closingBracket = bracketsMap[lastSymbol]!!
-        val updatedText = newValue.text.insertCharAt(closingBracket, cursorPosition)
+        val updatedText = currentText.insertCharAt(closingBracket, cursorPosition)
 
         // Set cursor position to be right after the opening bracket
         textState.value = TextFieldValue(updatedText, selection = TextRange(cursorPosition))
+        return true
     } else {
-        // Update normally if no opening bracket was added
-        textState.value = newValue
+        return false
     }
-}
-
-fun String.insertCharAt(char: Char, index: Int): String {
-    val sb = StringBuilder(this)
-    sb.insert(index, char)
-    return sb.toString()
 }
