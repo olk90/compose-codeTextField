@@ -11,6 +11,7 @@ styling.
 - **Automatic Indentation**: Maintains the indentation level of the previous line when creating a new line.
 - **Bracket Matching**: Automatically inserts closing brackets for opening brackets, improving code structure and
   reducing errors.
+- **Line Numbers:** The line numbers will be displayed left of the text input.
 
 ## Installation
 
